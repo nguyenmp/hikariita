@@ -14,9 +14,8 @@ You need python (2.7.10) and sqlite3 on your system.
 $ virtualenv virtualenv
 $ source virtualenv/bin/activate
 $ pip install -r requirements.txt
-$ FLASK_APP=hikariita flask run
+$ FLASK_DEBUG=True FLASK_ENV=dev FLASK_APP=hikariita flask run
 ```
-
 
 # Why?
 
