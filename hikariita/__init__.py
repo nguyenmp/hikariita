@@ -14,6 +14,8 @@ from flask import (
     redirect,
     url_for,
     g,
+    request,
+    abort,
 )
 
 from . import db
@@ -86,5 +88,18 @@ def vote(card_id):
     '''
     Gives a vote to the given card and redirects to the next card
     '''
-    # TODO: Set vote for card
+    confidence = request.form['confidence']
+    if confidence == 'good':
+        confidence = 1
+    elif confidence == 'okay':
+        confidence = 0
+    elif confidence == 'bad':
+        confidence = -1
+    else:
+        abort(400)
+
+    cursor = get_db().cursor()
+    db.create_vote(cursor, card_id, confidence)
+    get_db().commit()
+
     return redirect(url_for('cards'))

@@ -44,6 +44,14 @@ def create_book(cursor, title):
     return create_attribute(cursor, "Book", title)
 
 
+def create_vote(cursor, card_id, vote_value):
+    '''
+    Registers a vote on a card
+    '''
+    command = 'INSERT INTO votes (vote, card_id) VALUES (?, ?)'
+    cursor.execute(command, (vote_value, card_id))
+
+
 def create_lesson(cursor, number):
     '''
     Creates a new lesson for the given number
