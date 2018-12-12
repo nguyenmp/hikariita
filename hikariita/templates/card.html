@@ -1,10 +1,21 @@
 {% if kanji %}<h1>Kanji: {{ kanji }}</h1>{% endif %}
-<h1>Hiragana: {{ hiragana }}</h1>
-<h1>Meaning: {{ meaning }}</h1>
-
+<h1>Hiragana: <button onclick='reveal("hiragana");'>Show</button><span id="hiragana" style="display:none">{{ hiragana }}</span></h1>
+<h1>Meaning: <button onclick='reveal("meaning");'>Show</button><span id="meaning" style="display:none">{{ meaning }}</span></h1>
+<br>
+<br>
+<br>
 <form method="POST" action="./vote">
-	<input type="radio" name="confidence" value="good" checked>Good<br>
-	<input type="radio" name="confidence" value="okay">Okay<br>
+	<input type="radio" name="confidence" value="good">Good
+	<input type="radio" name="confidence" value="okay">Okay
 	<input type="radio" name="confidence" value="bad">Bad
-	<input type="submit" value="Submit"><br>
+	<br>
+	<br>
+	<input type="submit" value="Submit">
 </form>
+
+<script>
+function reveal(element_id) {
+	var element = document.getElementById(element_id);
+	element.style.display = "inline";
+}
+</script>
