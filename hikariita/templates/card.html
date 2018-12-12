@@ -1,3 +1,10 @@
-<h1>Kanji: {{ kanji }}</h1>
+{% if kanji %}<h1>Kanji: {{ kanji }}</h1>{% endif %}
 <h1>Hiragana: {{ hiragana }}</h1>
 <h1>Meaning: {{ meaning }}</h1>
+
+<form method="POST" action="./vote">
+	<input type="radio" name="confidence" value="good" checked>Good<br>
+	<input type="radio" name="confidence" value="okay">Okay<br>
+	<input type="radio" name="confidence" value="bad">Bad
+	<input type="submit" value="Submit"><br>
+</form>
