@@ -30,8 +30,11 @@ def get_db():
     '''
     if 'db' not in g:
         g.db = sqlite3.connect('example.db')
+        cursor = g.db.cursor()
+        db.init(cursor)
+        g.db.commit()
+        cursor.close()
     return g.db
-
 
 
 @APP.route('/', methods=['GET'])
@@ -47,7 +50,10 @@ def cards():
     '''
     The index of cards, redirects to an instance of a random card
     '''
-    card_id = db.get_random_card_id(get_db().cursor())
+    print "Getting cursor"
+    cursor = get_db().cursor()
+    card_id = db.get_next_card(cursor)
+
     APP.logger.debug('Type 1: %s', type(card_id))
     return redirect(url_for('card', card_id=card_id))
 
@@ -58,8 +64,11 @@ def card(card_id):
     Renders a single flash-card on screen
     '''
     APP.logger.debug('Type: %s', type(card_id))
+
     cursor = get_db().cursor()
     attributes = db.get_card_attributes(cursor, card_id)
+    cursor.close()
+
     kanji = None
     hiragana = None
     meaning = None
@@ -88,18 +97,19 @@ def vote(card_id):
     '''
     Gives a vote to the given card and redirects to the next card
     '''
-    confidence = request.form['confidence']
-    if confidence == 'good':
-        confidence = 1
-    elif confidence == 'okay':
-        confidence = 0
-    elif confidence == 'bad':
-        confidence = -1
-    else:
-        abort(400)
+    if 'confidence' in request.form:
+        confidence = request.form['confidence']
+        if confidence == 'good':
+            confidence = 1
+        elif confidence == 'okay':
+            confidence = 0
+        elif confidence == 'bad':
+            confidence = -1
+        else:
+            abort(400)
 
-    cursor = get_db().cursor()
-    db.create_vote(cursor, card_id, confidence)
-    get_db().commit()
+        cursor = get_db().cursor()
+        db.create_vote(cursor, card_id, confidence)
+        get_db().commit()
 
     return redirect(url_for('cards'))
