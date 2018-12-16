@@ -38,6 +38,13 @@ CREATE TABLE IF NOT EXISTS working_set (
     card_id INTEGER,
     FOREIGN KEY(card_id) REFERENCES cards(id)
 );
+
+CREATE TABLE IF NOT EXISTS preferences (
+    attribute_name TEXT PRIMARY KEY,
+    attribute_value TEXT,
+    FOREIGN KEY(attribute_name) REFERENCES attributes(name)
+    FOREIGN KEY(attribute_value) REFERENCES attributes(value)
+);
 '''
 
 
@@ -45,8 +52,8 @@ def read_data():
     '''
     Imports data from file system
     '''
-    with open("/Users/livingon/Downloads/An Integrated Approach to \
-            Intermediate Japanese - Lesson 1.tsv", 'r') as handle:
+    with open("/Users/livingon/Downloads/Mandarin - \
+Level 8 Lesson 6.tsv", 'r') as handle:
         content = handle.read().decode('utf8')
 
     result = []
@@ -122,6 +129,18 @@ def get_working_set_size(cursor):
     return working_set_size
 
 
+def clear_working_set(cursor):
+    '''
+    Deletes all cards from the working set so any
+    future queries will reinitialize the working set.
+
+    This should be used for major preference or state changes.
+    '''
+    print "Clearing working set"
+    delete_command = '''DELETE FROM working_set'''
+    cursor.execute(delete_command)
+
+
 def delete_card_from_working_set(cursor, card_id):
     '''
     Removes hte given card from the working set
@@ -152,6 +171,12 @@ def draw_from_least_recently_seen(cursor):
         SELECT votes.card_id, MAX(votes.id) FROM votes
         LEFT JOIN working_set
         ON votes.card_id == working_set.card_id
+        INNER JOIN attributes_cards_relation
+        ON attributes_cards_relation.card_id == votes.card_id
+        INNER JOIN attributes
+        ON attributes.id == attributes_cards_relation.attribute_id
+        INNER JOIN preferences
+        ON preferences.attribute_name == attributes.name AND preferences.attribute_value = attributes.value
         WHERE working_set.card_id IS NULL
         GROUP BY votes.card_id
         ORDER BY MAX(votes.id) ASC
@@ -202,6 +227,12 @@ def draw_from_bucket(cursor, bucket):
         SELECT cards.id FROM cards
         LEFT JOIN working_set
         ON cards.id == working_set.card_id
+        INNER JOIN attributes_cards_relation
+        ON attributes_cards_relation.card_id == cards.id
+        INNER JOIN attributes
+        ON attributes.id == attributes_cards_relation.attribute_id
+        INNER JOIN preferences
+        ON preferences.attribute_name == attributes.name AND preferences.attribute_value = attributes.value
         WHERE working_set.card_id IS NULL AND bucket == ?
         ORDER BY RANDOM()
         LIMIT 1
@@ -323,6 +354,58 @@ def get_next_card(cursor):
     return card_id
 
 
+def get_books(cursor):
+    '''
+    Returns the list of books available and the active book we're filtering on
+    '''
+    print "Getting all books"
+    command = '''
+        SELECT attributes.value FROM attributes
+        WHERE attributes.name == "Book"
+    '''
+    cursor.execute(command)
+    rows = cursor.fetchall()
+    book_names = [row[0] for row in rows]
+    print "Got " + str(len(book_names)) + " books"
+    return book_names
+
+
+def set_prefered_book(cursor, book_name):
+    '''
+    Sets the user's prefered book
+    '''
+    print "Setting prefered book to " + str(book_name)
+    command = '''
+        INSERT INTO preferences (attribute_name, attribute_value)
+        VALUES(?, ?)
+        ON CONFLICT(attribute_name)
+        DO UPDATE SET attribute_value=?;
+    '''
+    cursor.execute(command, ("Book", book_name, book_name,))
+
+
+def get_book(cursor):
+    '''
+    Gets the user's prefered book
+    '''
+    print "Getting preferred book"
+    command = '''
+        SELECT attributes.value FROM preferences
+        INNER JOIN attributes
+        ON attributes.name == preferences.attribute_name
+        AND preferences.attribute_value == attributes.value
+        '''
+    cursor.execute(command)
+    row = cursor.fetchone()
+    if row is None:
+        print "User has no prefered book"
+        return None
+
+    book_name = row[0]
+    print "User prefers " + str(book_name)
+    return book_name
+
+
 def init_working_set(cursor):
     '''
     Creates a working set for the user with at least 7 cards
@@ -347,29 +430,31 @@ def init_working_set(cursor):
         working set, or a bug."
 
 
-def convert_hanzi_to_pinyin(hanzi):
-    '''
-    Converts chinese characters to pinyin sound representation for studying.
-    '''
-    pass
-
-
 def main():
     ''' main '''
     connection = sqlite3.connect('example.db')
     cursor = connection.cursor()
     init(cursor)
-    title = 'An Integrated Approach to Intermediate Japanese'
+    title = 'Mandarin'
     book_id = create_book(cursor, title)
-    lesson_id = create_lesson(cursor, 1)
-    for (kanji, hiragana, meaning) in read_data():
+    lesson_id = create_lesson(cursor, "8-6")
+    headers = None
+    for row in read_data():
+        if headers is None:
+            assert row is not None
+            headers = row
+            continue
+
+        assert len(headers) == len(row)
+
         card_id = create_card(cursor)
-        kanji_id = create_attribute(cursor, "kanji", kanji)
-        associate_card_and_attribute(cursor, card_id, kanji_id)
-        hiragana_id = create_attribute(cursor, "hiragana", hiragana)
-        associate_card_and_attribute(cursor, card_id, hiragana_id)
-        meaning_id = create_attribute(cursor, "meaning", meaning)
-        associate_card_and_attribute(cursor, card_id, meaning_id)
+        print "Created card: " + str(card_id)
+        for i in range(0, len(headers)):
+            name = headers[i]
+            value = row[i]
+            attribute_id = create_attribute(cursor, name, value)
+            print "Created attribute: " + str(attribute_id) + " for " + name + " = " + value
+            associate_card_and_attribute(cursor, card_id, attribute_id)
         associate_card_and_attribute(cursor, card_id, book_id)
         associate_card_and_attribute(cursor, card_id, lesson_id)
         connection.commit()

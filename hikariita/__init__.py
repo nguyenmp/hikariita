@@ -67,6 +67,8 @@ def card(card_id):
 
     cursor = get_db().cursor()
     attributes = db.get_card_attributes(cursor, card_id)
+    books = db.get_books(cursor)
+    active_book = db.get_book(cursor)
     cursor.close()
 
     primaries = ['hanzi', 'kanji']
@@ -75,6 +77,8 @@ def card(card_id):
 
     return render_template(
         'card.html',
+        active_book=active_book,
+        books=books,
         primaries=primaries,
         hidden=hidden,
         attributes=attributes,
@@ -108,5 +112,27 @@ def vote(card_id):
         get_db().commit()
     else:
         APP.logger.warning("No confidence in this vote for %s", card_id)
+
+    return redirect(url_for('cards'))
+
+
+@APP.route('/preferences/', methods=['POST'])
+def preferences():
+    '''
+    Saves some given user preferences
+    '''
+    if 'book' in request.form:
+        book = request.form['book']
+        APP.logger.debug(
+            "User wants to use %s as their book",
+            book,
+        )
+
+        cursor = get_db().cursor()
+        db.set_prefered_book(cursor, book)
+        db.clear_working_set(cursor)
+        get_db().commit()
+    else:
+        APP.logger.warning("Unknown request")
 
     return redirect(url_for('cards'))
