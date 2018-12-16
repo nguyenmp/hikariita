@@ -108,8 +108,16 @@ def vote(card_id):
         else:
             abort(400)
 
+        APP.logger.debug(
+            "Received vote request for %s to %s",
+            card_id,
+            request.form['confidence']
+        )
+
         cursor = get_db().cursor()
         db.create_vote(cursor, card_id, confidence)
         get_db().commit()
+    else:
+        APP.logger.warning("No confidence in this vote for %s", card_id)
 
     return redirect(url_for('cards'))
