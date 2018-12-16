@@ -4,7 +4,7 @@
 This module is an application for flashcarding Japanese.
 '''
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 
 import sqlite3
 
@@ -50,7 +50,7 @@ def cards():
     '''
     The index of cards, redirects to an instance of a random card
     '''
-    print "Getting cursor"
+    print("Getting cursor")
     cursor = get_db().cursor()
     card_id = db.get_next_card(cursor)
 
@@ -73,7 +73,7 @@ def card(card_id):
 
     primaries = ['hanzi', 'kanji']
     hidden = ['Book', 'Lesson']
-    print "Attributes: " + str(attributes)
+    print("Attributes: " + str(attributes))
 
     return render_template(
         'card.html',

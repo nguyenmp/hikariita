@@ -2,7 +2,7 @@
 Imports flashcards into a sqlite database from CSV
 '''
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 
 import sqlite3
 
@@ -84,7 +84,7 @@ def create_vote(cursor, card_id, vote_value):
     '''
     Registers a vote on a card
     '''
-    print "Creating vote"
+    print("Creating vote")
     # Insert vote record
     command = 'INSERT INTO votes (vote, card_id) VALUES (?, ?)'
     cursor.execute(command, (vote_value, card_id))
@@ -99,8 +99,8 @@ def create_vote(cursor, card_id, vote_value):
     update_command = '''UPDATE cards SET bucket=? WHERE id==? AND bucket!=?'''
     cursor.execute(update_command, (bucket, card_id, bucket))
 
-    print "Did something update? " + str(cursor.rowcount)
-    print "What was the vote? " + str(vote_value)
+    print("Did something update? " + str(cursor.rowcount))
+    print("What was the vote? " + str(vote_value))
 
     if vote_value == 1:
         # Evict from working set and resample if state is "easy"
@@ -125,7 +125,7 @@ def get_working_set_size(cursor):
     cursor.execute(working_set_size_query)
     working_set_size_row = cursor.fetchone()
     working_set_size = working_set_size_row[0]
-    print "Working Set Size: " + str(working_set_size)
+    print("Working Set Size: " + str(working_set_size))
     return working_set_size
 
 
@@ -136,7 +136,7 @@ def clear_working_set(cursor):
 
     This should be used for major preference or state changes.
     '''
-    print "Clearing working set"
+    print("Clearing working set")
     delete_command = '''DELETE FROM working_set'''
     cursor.execute(delete_command)
 
@@ -145,7 +145,7 @@ def delete_card_from_working_set(cursor, card_id):
     '''
     Removes hte given card from the working set
     '''
-    print "Evicting " + str(card_id)
+    print("Evicting " + str(card_id))
     delete_command = '''DELETE FROM working_set WHERE card_id == ?'''
     cursor.execute(delete_command, (card_id,))
 
@@ -154,7 +154,7 @@ def add_card_to_working_set(cursor, card_id):
     '''
     Adds the given card to the working set
     '''
-    print "Inserting " + str(card_id)
+    print("Inserting " + str(card_id))
     update_command = 'INSERT INTO working_set (id, card_id) VALUES (NULL, ?)'
     cursor.execute(update_command, (card_id,))
 
@@ -166,7 +166,7 @@ def draw_from_least_recently_seen(cursor):
     Returns the card_id pulled, or None if there isn't
     any in the bucket not in the working set
     '''
-    print "Searching for least-recently-seen card"
+    print("Searching for least-recently-seen card")
     query_command = '''
         SELECT votes.card_id, MAX(votes.id) FROM votes
         LEFT JOIN working_set
@@ -185,7 +185,7 @@ def draw_from_least_recently_seen(cursor):
     cursor.execute(query_command)
     row = cursor.fetchone()
     if not row:
-        print "Found none"
+        print("Found none")
         return None
     card_id = row[0]
     add_card_to_working_set(cursor, card_id)
@@ -222,7 +222,7 @@ def draw_from_bucket(cursor, bucket):
     Returns the card_id pulled, or None if there isn't
     any in the bucket not in the working set
     '''
-    print "Drawing from " + bucket
+    print("Drawing from " + bucket)
     query_command = '''
         SELECT cards.id FROM cards
         LEFT JOIN working_set
@@ -240,7 +240,7 @@ def draw_from_bucket(cursor, bucket):
     cursor.execute(query_command, (bucket,))
     row = cursor.fetchone()
     if not row:
-        print "Found none"
+        print("Found none")
         return None
     card_id = row[0]
     add_card_to_working_set(cursor, card_id)
@@ -337,7 +337,7 @@ def get_next_card(cursor):
     '''
     Out of the working set, pick the card that we have not seen for the longest
     '''
-    print "Getting next card"
+    print("Getting next card")
     command = '''
         SELECT working_set.card_id
         FROM working_set
@@ -350,7 +350,7 @@ def get_next_card(cursor):
     cursor.execute(command)
     row = cursor.fetchone()
     card_id = row[0]
-    print "Got " + str(card_id)
+    print("Got " + str(card_id))
     return card_id
 
 
@@ -358,7 +358,7 @@ def get_books(cursor):
     '''
     Returns the list of books available and the active book we're filtering on
     '''
-    print "Getting all books"
+    print("Getting all books")
     command = '''
         SELECT attributes.value FROM attributes
         WHERE attributes.name == "Book"
@@ -366,7 +366,7 @@ def get_books(cursor):
     cursor.execute(command)
     rows = cursor.fetchall()
     book_names = [row[0] for row in rows]
-    print "Got " + str(len(book_names)) + " books"
+    print("Got " + str(len(book_names)) + " books")
     return book_names
 
 
@@ -374,7 +374,7 @@ def set_prefered_book(cursor, book_name):
     '''
     Sets the user's prefered book
     '''
-    print "Setting prefered book to " + str(book_name)
+    print("Setting prefered book to " + str(book_name))
     command = '''
         INSERT INTO preferences (attribute_name, attribute_value)
         VALUES(?, ?)
@@ -388,7 +388,7 @@ def get_book(cursor):
     '''
     Gets the user's prefered book
     '''
-    print "Getting preferred book"
+    print("Getting preferred book")
     command = '''
         SELECT attributes.value FROM preferences
         INNER JOIN attributes
@@ -398,11 +398,11 @@ def get_book(cursor):
     cursor.execute(command)
     row = cursor.fetchone()
     if row is None:
-        print "User has no prefered book"
+        print("User has no prefered book")
         return None
 
     book_name = row[0]
-    print "User prefers " + str(book_name)
+    print("User prefers " + str(book_name))
     return book_name
 
 
@@ -414,20 +414,20 @@ def init_working_set(cursor):
     or else it's the oldest card we haven't seen.
     '''
     # Assert working set is not initialized
-    print "Initing working set"
+    print("Initing working set")
 
     for _ in range(get_working_set_size(cursor), 7):
         if draw_from_bucket(cursor, "genesis") is not None:
-            print "Found a card from genesis to add to working set"
+            print("Found a card from genesis to add to working set")
             continue
 
         if draw_from_least_recently_seen(cursor) is not None:
-            print "Found a card we haven't seen in a while for working set"
+            print("Found a card we haven't seen in a while for working set")
             continue
 
-        print "Could not find another card to add to the working set. \
+        print("Could not find another card to add to the working set. \
         This could there's not enough cards in the deck to form a full \
-        working set, or a bug."
+        working set, or a bug.")
 
 
 def main():
@@ -448,12 +448,12 @@ def main():
         assert len(headers) == len(row)
 
         card_id = create_card(cursor)
-        print "Created card: " + str(card_id)
+        print("Created card: " + str(card_id))
         for i in range(0, len(headers)):
             name = headers[i]
             value = row[i]
             attribute_id = create_attribute(cursor, name, value)
-            print "Created attribute: " + str(attribute_id) + " for " + name + " = " + value
+            print("Created attribute: " + str(attribute_id) + " for " + name + " = " + value)
             associate_card_and_attribute(cursor, card_id, attribute_id)
         associate_card_and_attribute(cursor, card_id, book_id)
         associate_card_and_attribute(cursor, card_id, lesson_id)
