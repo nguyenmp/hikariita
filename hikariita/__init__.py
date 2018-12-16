@@ -69,26 +69,15 @@ def card(card_id):
     attributes = db.get_card_attributes(cursor, card_id)
     cursor.close()
 
-    kanji = None
-    hiragana = None
-    meaning = None
-    others = []
+    primaries = ['hanzi', 'kanji']
+    hidden = ['Book', 'Lesson']
+    print "Attributes: " + str(attributes)
 
-    for attribute in attributes:
-        if attribute[1] == 'kanji':
-            kanji = attribute[2]
-        elif attribute[1] == 'hiragana':
-            hiragana = attribute[2]
-        elif attribute[1] == 'meaning':
-            meaning = attribute[2]
-        else:
-            others.append((attribute[1], attribute[2]))
     return render_template(
         'card.html',
-        kanji=kanji,
-        hiragana=hiragana,
-        meaning=meaning,
-        others=others,
+        primaries=primaries,
+        hidden=hidden,
+        attributes=attributes,
     )
 
 

@@ -5,19 +5,19 @@
 <br/>
 <br/>
 <br/>
-{% if kanji %}<h1>Kanji: {{ kanji }}</h1>{% endif %}
-<br/>
-<br/>
-<br/>
-<button onclick='reveal("hiragana");' class="btn btn-info">Hiragana</button><h4 id="hiragana" style="display:none">{{ hiragana }}</h4>
-<br/>
-<br/>
-<br/>
-<button onclick='reveal("meaning");' class="btn btn-info">Meaning</button><h4 id="meaning" style="display:none">{{ meaning }}</h4>
-</div>
-<br/>
-<br/>
-<br/>
+{% for attribute in attributes %}
+	{% if attribute[1] in primaries %}
+		<h1>{{attribute[1]}}: {{ attribute[2] }}</h1>
+		<br/>
+		<br/>
+		<br/>
+	{% elif attribute[1] not in hidden %}
+		<button onclick='reveal("{{ attribute[1] }}");' class="btn btn-info">{{ attribute[1] }}</button><h4 id="{{ attribute[1] }}" style="display:none">{{ attribute[2] }}</h4>
+		<br/>
+		<br/>
+		<br/>
+	{% endif %}
+{% endfor %}
 <div class="container">
 	<div class="row">
 		<!-- <div class="col-sm"> -->
