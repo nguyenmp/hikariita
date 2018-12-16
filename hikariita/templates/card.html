@@ -7,38 +7,33 @@
 <br/>
 {% for attribute in attributes %}
 	{% if attribute[1] in primaries %}
-		<h1>{{attribute[1]}}: {{ attribute[2] }}</h1>
-		<br/>
-		<br/>
-		<br/>
+		<div class="card">
+			<div class="card-body">
+				<h1 class="card-text">{{attribute[1]}}: {{ attribute[2] }}</h1>
+			</div>
+		</div>
 	{% elif attribute[1] not in hidden %}
-		<button onclick='reveal("{{ attribute[1] }}");' class="btn btn-info">{{ attribute[1] }}</button><h4 id="{{ attribute[1] }}" style="display:none">{{ attribute[2] }}</h4>
-		<br/>
-		<br/>
-		<br/>
+		<div class="card">
+				<button onclick='reveal("{{ attribute[1] }}");' class="btn btn-info card-body">{{ attribute[1] }}</button>
+			<div class="card-body" id="{{ attribute[1] }}" style="display:none">
+				<h4>{{ attribute[2] }}</h4>
+			</div>
+		</div>
 	{% endif %}
 {% endfor %}
-<div class="container">
-	<div class="row">
-		<!-- <div class="col-sm"> -->
-			<form method="POST" action="./vote">
-				<input type="radio" name="confidence" value="good" checked="checked" style="display: none">
-				<input type="submit" value="Good" class="btn btn-success" class="float-left" style="margin: 12px">
-			</form>
-		<!-- </div> -->
-		<!-- <div class="col-sm"> -->
-			<form method="POST" action="./vote">
-				<input type="radio" name="confidence" value="okay" checked="checked" style="display: none">
-				<input type="submit" value="Okay" class="btn btn-warning" class="float-left" style="margin: 12px">
-			</form>
-		<!-- </div> -->
-		<!-- <div class="col-sm"> -->
-			<form method="POST" action="./vote">
-				<input type="radio" name="confidence" value="bad" checked="checked" style="display: none">
-				<input type="submit" value="Bad" class="btn btn-danger" class="float-left" style="margin: 12px">
-			</form>
-		<!-- </div> -->
-	</div>
+<div class="container" style="margin: auto;">
+	<form method="POST" action="./vote" class="float-left" display="inline-block">
+		<input type="radio" name="confidence" value="good" checked="checked" style="display: none">
+		<input type="submit" value="Good" class="btn btn-success" style="margin: 12px">
+	</form>
+	<form method="POST" action="./vote" class="float-left" display="inline-block">
+		<input type="radio" name="confidence" value="okay" checked="checked" style="display: none">
+		<input type="submit" value="Okay" class="btn btn-warning" style="margin: 12px">
+	</form>
+	<form method="POST" action="./vote" class="float-left" display="inline-block">
+		<input type="radio" name="confidence" value="bad" checked="checked" style="display: none">
+		<input type="submit" value="Bad" class="btn btn-danger" style="margin: 12px">
+	</form>
 </div>
 
 <script>
