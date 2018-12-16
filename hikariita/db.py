@@ -34,6 +34,7 @@ CREATE TABLE IF NOT EXISTS attributes_cards_relation (
 );
 
 CREATE TABLE IF NOT EXISTS working_set (
+    id INTEGER PRIMARY KEY,
     card_id INTEGER,
     FOREIGN KEY(card_id) REFERENCES cards(id)
 );
@@ -44,7 +45,8 @@ def read_data():
     '''
     Imports data from file system
     '''
-    with open("/Users/livingon/Downloads/An Integrated Approach to Intermediate Japanese - Lesson 1.tsv", 'r') as handle:
+    with open("/Users/livingon/Downloads/An Integrated Approach to \
+            Intermediate Japanese - Lesson 1.tsv", 'r') as handle:
         content = handle.read().decode('utf8')
 
     result = []
@@ -81,31 +83,28 @@ def create_vote(cursor, card_id, vote_value):
     cursor.execute(command, (vote_value, card_id))
 
     # Calculate new state
-    bucket = 'easy' if vote_value == 1 else calculate_state_of_card(cursor, card_id)
+    bucket = 'easy' if vote_value == 1 else calculate_state_of_card(
+        cursor,
+        card_id,
+    )
 
     # Update state
     update_command = '''UPDATE cards SET bucket=? WHERE id==? AND bucket!=?'''
     cursor.execute(update_command, (bucket, card_id, bucket))
 
-    # Evict from working set and resample if state has changed or is "easy"
-    if cursor.rowcount != 0 or vote_value == 1:
-        print 'Row Count: ' + str(cursor.rowcount)
-        print 'Vote Value: ' + str(vote_value)
-        delete_command = '''DELETE FROM working_set WHERE card_id == ?'''
-        cursor.execute(delete_command, (card_id,))
+    print "Did something update? " + str(cursor.rowcount)
+    print "What was the vote? " + str(vote_value)
 
-        for _ in range(get_working_set_size(cursor), 7):
-            if draw_from_bucket(cursor, "genesis") is not None:
-                print "Found a card from genesis to add to working set"
-                continue
+    if vote_value == 1:
+        # Evict from working set and resample if state is "easy"
+        delete_card_from_working_set(cursor, card_id)
+    else:
+        # If we aren't confident in this card,
+        # move it to the back of the working set queue
+        delete_card_from_working_set(cursor, card_id)
+        add_card_to_working_set(cursor, card_id)
 
-            if draw_from_least_recently_seen(cursor) is not None:
-                print "Found a card we haven't seen in a while for working set"
-                continue
-
-            print "Could not find another card to add to the working set. \
-            This could there's not enough cards in the deck to form a full \
-            working set, or a bug."
+    init_working_set(cursor)
 
 
 def get_working_set_size(cursor):
@@ -123,6 +122,24 @@ def get_working_set_size(cursor):
     return working_set_size
 
 
+def delete_card_from_working_set(cursor, card_id):
+    '''
+    Removes hte given card from the working set
+    '''
+    print "Evicting " + str(card_id)
+    delete_command = '''DELETE FROM working_set WHERE card_id == ?'''
+    cursor.execute(delete_command, (card_id,))
+
+
+def add_card_to_working_set(cursor, card_id):
+    '''
+    Adds the given card to the working set
+    '''
+    print "Inserting " + str(card_id)
+    update_command = 'INSERT INTO working_set (id, card_id) VALUES (NULL, ?)'
+    cursor.execute(update_command, (card_id,))
+
+
 def draw_from_least_recently_seen(cursor):
     '''
     Pulls a card from a bucket into a working set
@@ -132,14 +149,12 @@ def draw_from_least_recently_seen(cursor):
     '''
     print "Searching for least-recently-seen card"
     query_command = '''
-        SELECT cards.id, max(votes.id) FROM cards
+        SELECT votes.card_id, MAX(votes.id) FROM votes
         LEFT JOIN working_set
-        ON cards.id == working_set.card_id
-        INNER JOIN votes
-        ON cards.id == votes.card_id
+        ON votes.card_id == working_set.card_id
         WHERE working_set.card_id IS NULL
-        GROUP BY cards.id
-        ORDER BY MAX(votes.id)
+        GROUP BY votes.card_id
+        ORDER BY MAX(votes.id) ASC
         LIMIT 1
     '''
     cursor.execute(query_command)
@@ -148,16 +163,14 @@ def draw_from_least_recently_seen(cursor):
         print "Found none"
         return None
     card_id = row[0]
-
-    print "Inserting " + str(card_id)
-    update_command = 'INSERT INTO working_set (card_id) VALUES (?)'
-    cursor.execute(update_command, (card_id,))
+    add_card_to_working_set(cursor, card_id)
     return card_id
 
 
-def get_working_set_by_buckets(cursor):
+def get_working_set_size_by_buckets(cursor):
     '''
-    Returns a dictionary mapping "bucket" or state to a list of cards in that state.
+    Returns a dictionary mapping "bucket" or
+    state to a list of cards in that state.
 
     The list of cards are equal to the working set of cards.
     '''
@@ -177,7 +190,6 @@ def get_working_set_by_buckets(cursor):
     return buckets
 
 
-
 def draw_from_bucket(cursor, bucket):
     '''
     Pulls a card from a bucket into a working set
@@ -187,7 +199,7 @@ def draw_from_bucket(cursor, bucket):
     '''
     print "Drawing from " + bucket
     query_command = '''
-        SELECT id FROM cards
+        SELECT cards.id FROM cards
         LEFT JOIN working_set
         ON cards.id == working_set.card_id
         WHERE working_set.card_id IS NULL AND bucket == ?
@@ -200,10 +212,7 @@ def draw_from_bucket(cursor, bucket):
         print "Found none"
         return None
     card_id = row[0]
-
-    print "Inserting " + str(card_id)
-    update_command = 'INSERT INTO working_set (card_id) VALUES (?)'
-    cursor.execute(update_command, (card_id,))
+    add_card_to_working_set(cursor, card_id)
     return card_id
 
 
@@ -297,38 +306,52 @@ def get_next_card(cursor):
     '''
     Out of the working set, pick the card that we have not seen for the longest
     '''
-    print "getting next card"
+    print "Getting next card"
     command = '''
         SELECT working_set.card_id
         FROM working_set
         LEFT JOIN votes
         ON working_set.card_id == votes.card_id
         GROUP BY working_set.card_id
-        ORDER BY MAX(votes.ROWID) ASC
+        ORDER BY MAX(working_set.id) ASC
         LIMIT 1
     '''
     cursor.execute(command)
     row = cursor.fetchone()
-    return row[0]
+    card_id = row[0]
+    print "Got " + str(card_id)
+    return card_id
 
 
 def init_working_set(cursor):
     '''
-    Creates a working set for the user from 3 random cards from genesis
+    Creates a working set for the user with at least 7 cards
+
+    These cards are drawin from the "genesis" deck,
+    or else it's the oldest card we haven't seen.
     '''
     # Assert working set is not initialized
     print "Initing working set"
-    working_set_count_query = '''SELECT count(ROWID) FROM working_set'''
-    cursor.execute(working_set_count_query)
-    working_set_count = cursor.fetchone()[0]
-    if working_set_count != 0:
-        print "We don't need to init working set, it already has content"
-        return
 
-    # Pick 5 random from genesis (cards without votes)
-    # aka cards that haven't been seen yet
-    for _ in range(0, 3):
-        draw_from_bucket(cursor, 'genesis')
+    for _ in range(get_working_set_size(cursor), 7):
+        if draw_from_bucket(cursor, "genesis") is not None:
+            print "Found a card from genesis to add to working set"
+            continue
+
+        if draw_from_least_recently_seen(cursor) is not None:
+            print "Found a card we haven't seen in a while for working set"
+            continue
+
+        print "Could not find another card to add to the working set. \
+        This could there's not enough cards in the deck to form a full \
+        working set, or a bug."
+
+
+def convert_hanzi_to_pinyin(hanzi):
+    '''
+    Converts chinese characters to pinyin sound representation for studying.
+    '''
+    pass
 
 
 def main():
