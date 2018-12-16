@@ -75,44 +75,107 @@ def create_vote(cursor, card_id, vote_value):
     '''
     Registers a vote on a card
     '''
+    print "Creating vote"
     # Insert vote record
     command = 'INSERT INTO votes (vote, card_id) VALUES (?, ?)'
     cursor.execute(command, (vote_value, card_id))
 
     # Calculate new state
-    bucket = calculate_state_of_card(cursor, card_id)
+    bucket = 'easy' if vote_value == 1 else calculate_state_of_card(cursor, card_id)
 
     # Update state
     update_command = '''UPDATE cards SET bucket=? WHERE id==? AND bucket!=?'''
     cursor.execute(update_command, (bucket, card_id, bucket))
 
-    # Evict from working set and resample if state has changed
-    if cursor.rowcount != 0:
+    # Evict from working set and resample if state has changed or is "easy"
+    if cursor.rowcount != 0 or vote_value == 1:
+        print 'Row Count: ' + str(cursor.rowcount)
+        print 'Vote Value: ' + str(vote_value)
         delete_command = '''DELETE FROM working_set WHERE card_id == ?'''
         cursor.execute(delete_command, (card_id,))
 
-        working_set_distribution_query = '''
-            SELECT COUNT(*), bucket
-            FROM working_set
-            INNER JOIN cards
-            ON working_set.card_id == cards.id
-            GROUP BY bucket
-        '''
-        cursor.execute(working_set_distribution_query)
-        distribution_rows = cursor.fetchall()
-        buckets = {}
-        for row in distribution_rows:
-            buckets[row[1]] = row[0]
+        for _ in range(get_working_set_size(cursor), 7):
+            if draw_from_bucket(cursor, "genesis") is not None:
+                print "Found a card from genesis to add to working set"
+                continue
 
-        for _ in range(buckets.get('hard', 0) + buckets.get('genesis', 0), 3):
-            if not draw_from_bucket(cursor, 'hard'):
-                draw_from_bucket(cursor, 'genesis')
+            if draw_from_least_recently_seen(cursor) is not None:
+                print "Found a card we haven't seen in a while for working set"
+                continue
 
-        for _ in range(buckets.get('okay', 0), 2):
-            draw_from_bucket(cursor, 'okay')
+            print "Could not find another card to add to the working set. \
+            This could there's not enough cards in the deck to form a full \
+            working set, or a bug."
 
-        for _ in range(buckets.get('easy', 0), 2):
-            draw_from_bucket(cursor, 'easy')
+
+def get_working_set_size(cursor):
+    '''
+    Returns the current size of the working set.  The working set is the list
+    cards that we actively cycle through until we feel confident about them.
+    That list must be maintained as cards "graduate" from them, so that we keep
+    a certain minimum active size.
+    '''
+    working_set_size_query = 'SELECT COUNT(*) FROM working_set'
+    cursor.execute(working_set_size_query)
+    working_set_size_row = cursor.fetchone()
+    working_set_size = working_set_size_row[0]
+    print "Working Set Size: " + str(working_set_size)
+    return working_set_size
+
+
+def draw_from_least_recently_seen(cursor):
+    '''
+    Pulls a card from a bucket into a working set
+
+    Returns the card_id pulled, or None if there isn't
+    any in the bucket not in the working set
+    '''
+    print "Searching for least-recently-seen card"
+    query_command = '''
+        SELECT cards.id, max(votes.id) FROM cards
+        LEFT JOIN working_set
+        ON cards.id == working_set.card_id
+        INNER JOIN votes
+        ON cards.id == votes.card_id
+        WHERE working_set.card_id IS NULL
+        GROUP BY cards.id
+        ORDER BY MAX(votes.id)
+        LIMIT 1
+    '''
+    cursor.execute(query_command)
+    row = cursor.fetchone()
+    if not row:
+        print "Found none"
+        return None
+    card_id = row[0]
+
+    print "Inserting " + str(card_id)
+    update_command = 'INSERT INTO working_set (card_id) VALUES (?)'
+    cursor.execute(update_command, (card_id,))
+    return card_id
+
+
+def get_working_set_by_buckets(cursor):
+    '''
+    Returns a dictionary mapping "bucket" or state to a list of cards in that state.
+
+    The list of cards are equal to the working set of cards.
+    '''
+    working_set_distribution_query = '''
+        SELECT COUNT(*), bucket
+        FROM working_set
+        INNER JOIN cards
+        ON working_set.card_id == cards.id
+        GROUP BY bucket
+    '''
+    cursor.execute(working_set_distribution_query)
+    distribution_rows = cursor.fetchall()
+    buckets = {}
+    for row in distribution_rows:
+        buckets[row[1]] = row[0]
+
+    return buckets
+
 
 
 def draw_from_bucket(cursor, bucket):
@@ -122,6 +185,7 @@ def draw_from_bucket(cursor, bucket):
     Returns the card_id pulled, or None if there isn't
     any in the bucket not in the working set
     '''
+    print "Drawing from " + bucket
     query_command = '''
         SELECT id FROM cards
         LEFT JOIN working_set
@@ -133,6 +197,7 @@ def draw_from_bucket(cursor, bucket):
     cursor.execute(query_command, (bucket,))
     row = cursor.fetchone()
     if not row:
+        print "Found none"
         return None
     card_id = row[0]
 
@@ -155,13 +220,13 @@ def calculate_state_of_card(cursor, card_id):
         FROM votes
         WHERE card_id=?
         ORDER BY ROWID DESC
-        LIMIT 5
+        LIMIT 3
     '''
     cursor.execute(command, (card_id,))
     row = cursor.fetchone()
 
     # We don't have enough votes to determine state yet
-    if row[1] < 5:
+    if row[1] < 3:
         return None
 
     assert row[0] >= -1
