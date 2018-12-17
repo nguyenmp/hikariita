@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS working_set (
 CREATE TABLE IF NOT EXISTS preferences (
     attribute_name TEXT PRIMARY KEY,
     attribute_value TEXT,
-    FOREIGN KEY(attribute_name) REFERENCES attributes(name)
+    FOREIGN KEY(attribute_name) REFERENCES attributes(name) ON UPDATE CASCADE
     FOREIGN KEY(attribute_value) REFERENCES attributes(value)
 );
 '''
@@ -315,6 +315,15 @@ def create_card(cursor):
     command = 'INSERT INTO cards (id, bucket) VALUES (NULL, "genesis")'
     cursor.execute(command)
     return cursor.lastrowid
+
+
+def edit_attribute(cursor, attribute_id, attribute_value):
+    '''
+    Updates the given card's attribute to be the given value
+    '''
+    command = 'UPDATE attributes SET value=? WHERE id==?'
+    cursor.execute(command, (attribute_value, attribute_id,))
+    print("Affected " + str(cursor.rowcount) + " rows")
 
 
 def get_card_attributes(cursor, card_id):

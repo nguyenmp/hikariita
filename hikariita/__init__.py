@@ -87,6 +87,25 @@ def card(card_id):
     )
 
 
+@APP.route('/cards/<string:card_id>/edit/', methods=['POST'])
+def edit_card(card_id):
+    '''
+    Renders a single flash-card on screen
+    '''
+    cursor = get_db().cursor()
+    for (attribute_id, attribute_value) in request.form.items():
+        APP.logger.info(
+            "Editing %s setting %s to %s",
+            card_id,
+            attribute_id,
+            attribute_value,
+        )
+        db.edit_attribute(cursor, attribute_id, attribute_value)
+    cursor.close()
+    get_db().commit()
+    return redirect(url_for('card', card_id=card_id))
+
+
 @APP.route('/cards/<int:card_id>/vote', methods=['POST'])
 def vote(card_id):
     '''

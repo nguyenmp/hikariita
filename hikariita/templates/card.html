@@ -13,24 +13,26 @@
 			{% endfor %}
 		</div>
 	</div>
-	<button type="button" class="btn btn-primary">Edit Card</button>
+	<button type="button" class="btn btn-primary" onclick="enter_edit_mode();">Edit Card</button>
 </div>
 <div class="container">
 <br/>
 <br/>
 <br/>
 <div class="card">
-	<form id="edit-card">
-		{% for attribute in attributes %}
-			{% if attribute[1] not in hidden %}
+	<form method="POST" class="edit-card" action="./edit/">
+	{% for attribute in attributes %}
+		{% if attribute[1] not in hidden %}
 				<div class="form-group row">
 					<label onclick='reveal("{{ attribute[1] }}");'  for="{{ attribute[1] }}" class="col-sm-3 col-form-label">{{ attribute[1] }}</label>
 					<div class="col-sm-9">
-						<input type="text" readonly class="form-control-plaintext" id="{{ attribute[1] }}" value="{{ attribute[2] or "N/A" }}" {% if attribute[1] not in primaries %} style="display:none"{% endif %}>
+						<input type="text" readonly class="form-control-plaintext" id="{{ attribute[1] }}" name="{{ attribute[0] }}" value="{{ attribute[2] or "N/A" }}" {% if attribute[1] not in primaries %} style=""{% endif %}>
 					</div>
 				</div>
-			{% endif %}
-		{% endfor %}
+
+		{% endif %}
+	{% endfor %}
+	<input type="submit" value="Save" class="btn btn-success" style="margin: 12px; display: none;">
 	</form>
 </div>
 <div class="container">
@@ -54,6 +56,14 @@
 function reveal(element_id) {
 	var element = document.getElementById(element_id);
 	element.style.display = "inline";
+}
+
+function enter_edit_mode() {
+	$(".edit-card input").each(
+		function (index, node) {
+			$(node).prop("readonly", false).css("display", "inline");
+		}
+	);
 }
 </script>
 {% endblock %}
