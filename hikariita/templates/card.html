@@ -1,10 +1,7 @@
-<head>
-<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
-<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
-</head>
-<div class="container" style="margin: auto;">
+{% extends "base.html" %}
+{% block title %}View Card{% endblock %}
+{% block content %}
+<div class="container" style="text-align: center;">
 	<div class="btn-group">
 		<button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{ active_book or "Select A Book"}}</button>
 		<div class="dropdown-menu">
@@ -16,40 +13,41 @@
 			{% endfor %}
 		</div>
 	</div>
+	<button type="button" class="btn btn-primary">Edit Card</button>
 </div>
 <div class="container">
 <br/>
 <br/>
 <br/>
-{% for attribute in attributes %}
-	{% if attribute[1] in primaries %}
-		<div class="card">
-			<div class="card-body">
-				<h1 class="card-text">{{attribute[1]}}: {{ attribute[2] }}</h1>
-			</div>
-		</div>
-	{% elif attribute[1] not in hidden %}
-		<div class="card">
-				<button onclick='reveal("{{ attribute[1] }}");' class="btn btn-info card-body">{{ attribute[1] }}</button>
-			<div class="card-body" id="{{ attribute[1] }}" style="display:none">
-				<h4>{{ attribute[2] }}</h4>
-			</div>
-		</div>
-	{% endif %}
-{% endfor %}
-<div class="container" style="margin: auto;">
-	<form method="POST" action="./vote" class="float-left" display="inline-block">
-		<input type="radio" name="confidence" value="good" checked="checked" style="display: none">
-		<input type="submit" value="Good" class="btn btn-success" style="margin: 12px">
+<div class="card">
+	<form id="edit-card">
+		{% for attribute in attributes %}
+			{% if attribute[1] not in hidden %}
+				<div class="form-group row">
+					<label onclick='reveal("{{ attribute[1] }}");'  for="{{ attribute[1] }}" class="col-sm-3 col-form-label">{{ attribute[1] }}</label>
+					<div class="col-sm-9">
+						<input type="text" readonly class="form-control-plaintext" id="{{ attribute[1] }}" value="{{ attribute[2] or "N/A" }}" {% if attribute[1] not in primaries %} style="display:none"{% endif %}>
+					</div>
+				</div>
+			{% endif %}
+		{% endfor %}
 	</form>
-	<form method="POST" action="./vote" class="float-left" display="inline-block">
-		<input type="radio" name="confidence" value="okay" checked="checked" style="display: none">
-		<input type="submit" value="Okay" class="btn btn-warning" style="margin: 12px">
-	</form>
-	<form method="POST" action="./vote" class="float-left" display="inline-block">
-		<input type="radio" name="confidence" value="bad" checked="checked" style="display: none">
-		<input type="submit" value="Bad" class="btn btn-danger" style="margin: 12px">
-	</form>
+</div>
+<div class="container">
+	<div style="text-align: center">
+		<form method="POST" action="./vote" style="display: inline;">
+			<input type="radio" name="confidence" value="good" checked="checked" style="display: none">
+			<input type="submit" value="Good" class="btn btn-success" style="margin: 12px">
+		</form>
+		<form method="POST" action="./vote" style="display: inline;">
+			<input type="radio" name="confidence" value="okay" checked="checked" style="display: none">
+			<input type="submit" value="Okay" class="btn btn-warning" style="margin: 12px">
+		</form>
+		<form method="POST" action="./vote" style="display: inline;">
+			<input type="radio" name="confidence" value="bad" checked="checked" style="display: none">
+			<input type="submit" value="Bad" class="btn btn-danger" style="margin: 12px">
+		</form>
+	</div>
 </div>
 
 <script>
@@ -58,3 +56,4 @@ function reveal(element_id) {
 	element.style.display = "inline";
 }
 </script>
+{% endblock %}

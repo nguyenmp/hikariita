@@ -42,7 +42,9 @@ def index():
     '''
     Home page
     '''
-    return "Welcome!"
+    return render_template(
+        'index.html',
+    )
 
 
 @APP.route('/cards/', methods=['GET'])
