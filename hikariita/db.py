@@ -43,7 +43,7 @@ CREATE TABLE IF NOT EXISTS preferences (
     attribute_name TEXT PRIMARY KEY,
     attribute_value TEXT,
     FOREIGN KEY(attribute_name) REFERENCES attributes(name) ON UPDATE CASCADE
-    FOREIGN KEY(attribute_value) REFERENCES attributes(value)
+    FOREIGN KEY(attribute_value) REFERENCES attributes(value) ON UPDATE CASCADE
 );
 '''
 
@@ -326,6 +326,27 @@ def edit_attribute(cursor, attribute_id, attribute_value):
     print("Affected " + str(cursor.rowcount) + " rows")
 
 
+def get_attributes(cursor):
+    '''
+    Returns a dictionary of all the attribute names
+    mapped to all their respective values
+
+    Originally written so that I could create a "filtering" UI
+    '''
+    query = '''
+        SELECT name, value FROM attributes
+        ORDER BY attributes.name
+    '''
+    cursor.execute(query)
+    rows = cursor.fetchall()
+    result = {}
+    for (name, value) in rows:
+        values = result.get(name, [])
+        values.append(value)
+        result[name] = values
+    return result
+
+
 def get_card_attributes(cursor, card_id):
     '''
     Gets all the attributes associated with a card_id
@@ -357,6 +378,9 @@ def get_next_card(cursor):
     '''
     cursor.execute(command)
     row = cursor.fetchone()
+    if not row:
+        print("No cards in working set")
+        return None
     card_id = row[0]
     print("Got " + str(card_id))
     return card_id

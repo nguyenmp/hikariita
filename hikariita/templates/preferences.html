@@ -3,10 +3,23 @@
 {% block content %}
 <h1>Preferences</h1>
 <div>
-    Your preferences are saved here.  You can filter what cards to work with on this page by setting what properties you want to query by.
-
-    {% for preference in preferences %}
-        
-    {% endfor %}
+<div class="card">
+    <p>
+        Your preferences are saved here.  You can filter what cards to work with on this page by setting what properties you want to query by.
+    </p>
 </div>
+<div class="card">
+    <form method="POST" class="edit-card" action="./edit">
+    {% for preference in preferences %}
+        <div id="{{ preference['name'] }}-row" class="form-group row">
+            <label for="{{ preference['name'] }}" class="col-sm-3 col-form-label">{{ preference['name'] }}</label>
+            <div class="col-sm-9">
+                <input type="text" class="form-control-plaintext" id="{{ preference['name'] }}" name="{{ preference['name'] }}" value="{{ preference['value'] }}">
+            </div>
+        </div>
+    {% endfor %}
+    <input type="submit" value="Save" class="btn btn-success">
+    </form>
+</div>
+
 {% endblock %}

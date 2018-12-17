@@ -58,7 +58,7 @@ def cards():
     card_id = db.get_next_card(cursor)
 
     APP.logger.debug('Type 1: %s', type(card_id))
-    return redirect(url_for('card', card_id=card_id))
+    return redirect(url_for('card', card_id=card_id or -1))
 
 
 @APP.route('/cards/<string:card_id>/', methods=['GET'])
@@ -143,21 +143,11 @@ def preferences_edit():
     '''
     Saves some given user preferences
     '''
-    if 'book' in request.form:
-        book = request.form['book']
-        APP.logger.debug(
-            "User wants to use %s as their book",
-            book,
-        )
-
-        cursor = get_db().cursor()
-        db.set_prefered_book(cursor, book)
-        db.clear_working_set(cursor)
-        get_db().commit()
-    else:
-        APP.logger.warning("Unknown request")
-
-    return redirect(url_for('cards'))
+    cursor = get_db().cursor()
+    db.set_preferences(cursor, request.form)
+    db.clear_working_set(cursor)
+    get_db().commit()
+    return redirect(request.referrer)
 
 
 @APP.route('/preferences/', methods=['GET'])
@@ -166,8 +156,12 @@ def preferences():
     Saves some given user preferences
     '''
     cursor = get_db().cursor()
+    prefs = db.get_preferences(cursor)
+    attributes = db.get_attributes(cursor)
     return render_template(
         'preferences.html',
+        preferences=prefs,
+        attributes=attributes,
     )
 
 

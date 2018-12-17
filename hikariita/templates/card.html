@@ -7,7 +7,7 @@
 		<div class="dropdown-menu">
 			{% for book in books %}
 				<form method="POST" action="/preferences/edit" id="{{book}}">
-					<input type="radio" name="book" value="{{book}}" checked="checked" style="display: none">
+					<input type="radio" name="Book" value="{{book}}" checked="checked" style="display: none">
 					<a class="dropdown-item" href="javascript:{}" onclick="document.getElementById('{{book}}').submit(); return false;">{{book}}</a>
 				</form>
 			{% endfor %}
