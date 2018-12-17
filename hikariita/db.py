@@ -376,12 +376,10 @@ def set_prefered_book(cursor, book_name):
     '''
     print("Setting prefered book to " + str(book_name))
     command = '''
-        INSERT INTO preferences (attribute_name, attribute_value)
+        INSERT OR REPLACE INTO preferences (attribute_name, attribute_value)
         VALUES(?, ?)
-        ON CONFLICT(attribute_name)
-        DO UPDATE SET attribute_value=?;
     '''
-    cursor.execute(command, ("Book", book_name, book_name,))
+    cursor.execute(command, ("Book", book_name,))
 
 
 def get_card_stats(cursor):
