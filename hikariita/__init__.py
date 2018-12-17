@@ -136,3 +136,16 @@ def preferences():
         APP.logger.warning("Unknown request")
 
     return redirect(url_for('cards'))
+
+
+@APP.route('/stats/', methods=['GET'])
+def stats():
+    '''
+    Shows some summary information about my cards
+    '''
+    cursor = get_db().cursor()
+    books = db.get_card_stats(cursor)
+    return render_template(
+        'stats.html',
+        books=books,
+    )

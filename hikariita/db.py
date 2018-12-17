@@ -384,6 +384,30 @@ def set_prefered_book(cursor, book_name):
     cursor.execute(command, ("Book", book_name, book_name,))
 
 
+def get_card_stats(cursor):
+    '''
+    Returns statistics about card stats
+    '''
+    print("Getting statistics")
+    command = '''
+        SELECT COUNT(*), attributes.value, cards.bucket FROM cards
+        LEFT JOIN attributes_cards_relation
+        ON cards.id == attributes_cards_relation.card_id
+        INNER JOIN attributes
+        ON attributes_cards_relation.attribute_id == attributes.id
+        WHERE attributes.name == "Book"
+        GROUP BY attributes.value, cards.bucket
+    '''
+    cursor.execute(command)
+    rows = cursor.fetchall()
+    by_book = {}
+    for (count, book, bucket) in rows:
+        buckets = by_book.get(book, {})
+        buckets[bucket] = count
+        by_book[book] = buckets
+    return by_book
+
+
 def get_book(cursor):
     '''
     Gets the user's prefered book

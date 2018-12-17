@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<table style="width:100%">
+    <tr>
+        <th>Book</th>
+        <th>Genesis</th>
+        <th>Hard</th>
+        <th>Okay</th>
+        <th>Easy</th>
+    </tr>
+    {% for (book, buckets) in books.items() %}
+        <tr>
+            <td>{{ book }}</td>
+            <td>{{ buckets.get("genesis", 0) }}</td>
+            <td>{{ buckets.get("hard", 0) }}</td>
+            <td>{{ buckets.get("okay", 0) }}</td>
+            <td>{{ buckets.get("easy", 0) }}</td>
+        </tr>
+    {% endfor %}
+</table>
