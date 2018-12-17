@@ -402,18 +402,39 @@ def get_books(cursor):
     return book_names
 
 
+def clear_preferences(cursor):
+    '''
+    Erases all the preference stuff
+    '''
+    print("Clearing user's preferences")
+    command = '''
+        DELETE FROM preferences
+    '''
+    cursor.execute(command)
+
+
+def set_preference(cursor, preference):
+    '''
+    Adds/sets the given preference for the user
+    '''
+    print("Updating user's preference for " + str(preference))
+    (attribute_name, attribute_value) = preference
+    command = '''
+        INSERT OR REPLACE INTO preferences (attribute_name, attribute_value)
+        VALUES(?, ?)
+    '''
+    cursor.execute(command, (attribute_name, attribute_value,))
+    print("Setted " + attribute_name + ' to ' + attribute_value)
+
+
 def set_preferences(cursor, preferences):
     '''
     Sets the user's preferences to the provided
     '''
     print("Updating user's preferences")
-    command = '''
-        INSERT OR REPLACE INTO preferences (attribute_name, attribute_value)
-        VALUES(?, ?)
-    '''
-    for (attribute_name, attribute_value) in preferences.items():
-        cursor.execute(command, (attribute_name, attribute_value,))
-        print("Setting " + attribute_name + ' to ' + attribute_value)
+    clear_preferences(cursor)
+    for preference in preferences:
+        set_preference(cursor, preference)
 
 
 def set_prefered_book(cursor, book_name):
@@ -421,7 +442,7 @@ def set_prefered_book(cursor, book_name):
     Sets the user's prefered book
     '''
     print("Setting prefered book to " + str(book_name))
-    set_preferences(cursor, {'Book': book_name})
+    set_preference(cursor, ('Book', book_name,))
 
 
 def get_card_stats(cursor):

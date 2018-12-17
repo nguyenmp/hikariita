@@ -144,10 +144,12 @@ def preferences_edit():
     Saves some given user preferences
     '''
     cursor = get_db().cursor()
-    db.set_preferences(cursor, request.form)
+    db.set_preferences(cursor, request.form.items())
     db.clear_working_set(cursor)
     get_db().commit()
-    return redirect(request.referrer)
+    if 'preferences' in request.referrer:
+        return redirect(url_for('preferences'))
+    return redirect(url_for('cards'))
 
 
 @APP.route('/preferences/', methods=['GET'])
