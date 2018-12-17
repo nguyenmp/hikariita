@@ -52,8 +52,7 @@ def read_data():
     '''
     Imports data from file system
     '''
-    with open("/Users/livingon/Downloads/Mandarin - \
-Level 8 Lesson 6.tsv", 'r') as handle:
+    with open("/Users/livingon/Downloads/Genki I & II - Lesson 1.tsv", 'r') as handle:
         content = handle.read().decode('utf8')
 
     result = []
@@ -457,9 +456,9 @@ def main():
     connection = sqlite3.connect('example.db')
     cursor = connection.cursor()
     init(cursor)
-    title = 'Mandarin'
+    title = 'Genki 1'
     book_id = create_book(cursor, title)
-    lesson_id = create_lesson(cursor, "8-6")
+    lesson_id = create_lesson(cursor, "1")
     headers = None
     for row in read_data():
         if headers is None:
@@ -472,7 +471,7 @@ def main():
         card_id = create_card(cursor)
         print("Created card: " + str(card_id))
         for i in range(0, len(headers)):
-            name = headers[i]
+            name = headers[i].lower()
             value = row[i]
             attribute_id = create_attribute(cursor, name, value)
             print("Created attribute: " + str(attribute_id) + " for " + name + " = " + value)
