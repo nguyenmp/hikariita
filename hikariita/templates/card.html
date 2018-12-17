@@ -6,7 +6,7 @@
 		<button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{ active_book or "Select A Book"}}</button>
 		<div class="dropdown-menu">
 			{% for book in books %}
-				<form method="POST" action="/preferences/" id="{{book}}">
+				<form method="POST" action="/preferences/edit" id="{{book}}">
 					<input type="radio" name="book" value="{{book}}" checked="checked" style="display: none">
 					<a class="dropdown-item" href="javascript:{}" onclick="document.getElementById('{{book}}').submit(); return false;">{{book}}</a>
 				</form>

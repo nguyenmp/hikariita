@@ -30,6 +30,7 @@ def get_db():
     '''
     if 'db' not in g:
         g.db = sqlite3.connect('example.db')
+        g.db.row_factory = sqlite3.Row
         cursor = g.db.cursor()
         db.init(cursor)
         g.db.commit()
@@ -137,8 +138,8 @@ def vote(card_id):
     return redirect(url_for('cards'))
 
 
-@APP.route('/preferences/', methods=['POST'])
-def preferences():
+@APP.route('/preferences/edit', methods=['POST'])
+def preferences_edit():
     '''
     Saves some given user preferences
     '''
@@ -157,6 +158,17 @@ def preferences():
         APP.logger.warning("Unknown request")
 
     return redirect(url_for('cards'))
+
+
+@APP.route('/preferences/', methods=['GET'])
+def preferences():
+    '''
+    Saves some given user preferences
+    '''
+    cursor = get_db().cursor()
+    return render_template(
+        'preferences.html',
+    )
 
 
 @APP.route('/stats/', methods=['GET'])

@@ -378,16 +378,26 @@ def get_books(cursor):
     return book_names
 
 
+def set_preferences(cursor, preferences):
+    '''
+    Sets the user's preferences to the provided
+    '''
+    print("Updating user's preferences")
+    command = '''
+        INSERT OR REPLACE INTO preferences (attribute_name, attribute_value)
+        VALUES(?, ?)
+    '''
+    for (attribute_name, attribute_value) in preferences.items():
+        cursor.execute(command, (attribute_name, attribute_value,))
+        print("Setting " + attribute_name + ' to ' + attribute_value)
+
+
 def set_prefered_book(cursor, book_name):
     '''
     Sets the user's prefered book
     '''
     print("Setting prefered book to " + str(book_name))
-    command = '''
-        INSERT OR REPLACE INTO preferences (attribute_name, attribute_value)
-        VALUES(?, ?)
-    '''
-    cursor.execute(command, ("Book", book_name,))
+    set_preferences(cursor, {'Book': book_name})
 
 
 def get_card_stats(cursor):
@@ -414,26 +424,33 @@ def get_card_stats(cursor):
     return by_book
 
 
-def get_book(cursor):
+def get_preferences(cursor):
     '''
-    Gets the user's prefered book
+    Returns the list of attributes and values the user wants to filter by
     '''
-    print("Getting preferred book")
+    print("Getting preferences")
     command = '''
-        SELECT attributes.value FROM preferences
+        SELECT id as id, name as name, value as value FROM preferences
         INNER JOIN attributes
         ON attributes.name == preferences.attribute_name
         AND preferences.attribute_value == attributes.value
         '''
     cursor.execute(command)
-    row = cursor.fetchone()
-    if row is None:
-        print("User has no prefered book")
-        return None
+    rows = cursor.fetchall()
+    return rows
 
-    book_name = row[0]
-    print("User prefers " + str(book_name))
-    return book_name
+
+def get_book(cursor):
+    '''
+    Gets the user's prefered book, or None if not selected
+    '''
+    preferences = get_preferences(cursor)
+    for preference in preferences:
+        print(preference)
+        print(type(preference))
+        if preference[str('name')] == 'Book':
+            return preference[str('value')]
+    return None
 
 
 def init_working_set(cursor):
