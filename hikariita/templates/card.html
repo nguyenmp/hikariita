@@ -26,7 +26,7 @@
 				<div class="form-group row">
 					<label onclick='reveal("{{ attribute[1] }}");'  for="{{ attribute[1] }}" class="col-sm-3 col-form-label">{{ attribute[1] }}</label>
 					<div class="col-sm-9">
-						<input type="text" readonly class="form-control-plaintext" id="{{ attribute[1] }}" name="{{ attribute[0] }}" value="{{ attribute[2] or "N/A" }}" {% if attribute[1] not in primaries %} style=""{% endif %}>
+						<input type="text" readonly class="form-control-plaintext" id="{{ attribute[1] }}" name="{{ attribute[0] }}" value="{{ attribute[2] or "N/A" }}" {% if attribute[1] not in primaries %} style="display: none;"{% endif %}>
 					</div>
 				</div>
 
