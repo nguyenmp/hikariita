@@ -5,6 +5,7 @@ Imports flashcards into a sqlite database from CSV
 from __future__ import unicode_literals, print_function
 
 import sqlite3
+import random
 
 
 INIT_DB_COMMANDS = '''
@@ -513,6 +514,13 @@ def init_working_set(cursor):
             print("Found a card from genesis to add to working set")
             continue
 
+        if random.random() < 0.3:
+            print("Randomly draw from the easy pool to mix things up")
+            if draw_from_bucket(cursor, "easy") is not None:
+                print("Found a card from genesis to add to working set")
+                continue
+
+        # However, usually, we should draw from the tail to prevent stale cards
         if draw_from_least_recently_seen(cursor) is not None:
             print("Found a card we haven't seen in a while for working set")
             continue
