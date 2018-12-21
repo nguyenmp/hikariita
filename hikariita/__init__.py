@@ -6,6 +6,7 @@ This module is an application for flashcarding Japanese.
 
 from __future__ import unicode_literals, print_function
 
+import os
 import sqlite3
 
 from flask import (
@@ -29,7 +30,11 @@ def get_db():
     Returns the cached database connection
     '''
     if 'db' not in g:
-        g.db = sqlite3.connect('example.db')
+        print(str(os.environ))
+        db_path = os.environ.get('DATABASE', APP.config.get('DATABASE', None))
+        print("DB STAT: " + str(os.stat(db_path)))
+        print("Dtabase: " + str(db_path))
+        g.db = sqlite3.connect(db_path)
         g.db.row_factory = sqlite3.Row
         cursor = g.db.cursor()
         db.init(cursor)

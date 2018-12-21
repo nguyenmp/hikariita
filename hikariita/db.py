@@ -49,11 +49,11 @@ CREATE TABLE IF NOT EXISTS preferences (
 '''
 
 
-def read_data():
+def read_data(file_path):
     '''
     Imports data from file system
     '''
-    with open("/Users/livingon/Downloads/Genki I & II - Lesson 1.tsv", 'r') as handle:
+    with open(file_path, 'r') as handle:
         content = handle.read().decode('utf8')
 
     result = []
@@ -530,21 +530,15 @@ def init_working_set(cursor):
         working set, or a bug.")
 
 
-def main():
-    ''' main '''
-    connection = sqlite3.connect('example.db')
-    cursor = connection.cursor()
-    init(cursor)
-    title = 'Genki 1'
-    book_id = create_book(cursor, title)
-    lesson_id = create_lesson(cursor, "1")
-    headers = None
-    for row in read_data():
-        if headers is None:
-            assert row is not None
-            headers = row
-            continue
+def create_content(cursor, book_title, lesson_name, headers, cards):
+    '''
+    Populates/inserts the given content into the database
 
+    We will not reuse any content (merging).
+    '''
+    book_id = create_book(cursor, book_title)
+    lesson_id = create_lesson(cursor, lesson_name)
+    for row in cards:
         assert len(headers) == len(row)
 
         card_id = create_card(cursor)
@@ -557,8 +551,21 @@ def main():
             associate_card_and_attribute(cursor, card_id, attribute_id)
         associate_card_and_attribute(cursor, card_id, book_id)
         associate_card_and_attribute(cursor, card_id, lesson_id)
-        connection.commit()
 
+
+def main():
+    ''' Imports data from a file '''
+    connection = sqlite3.connect('example.db')
+    cursor = connection.cursor()
+    init(cursor)
+    title = 'Genki 1'
+    lesson = 1
+    file_path = "/Users/livingon/Downloads/Genki I & II - Lesson 1.tsv"
+    data = read_data(file_path)
+    headers = data[0]
+    cards = data[1:]
+    create_content(cursor, title, lesson, headers, cards)
+    connection.commit()
 
 if __name__ == '__main__':
     main()
