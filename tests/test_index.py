@@ -2,7 +2,7 @@
 Tests that we can load the index page
 '''
 
-from __future__ import print_function
+from __future__ import print_function, unicode_literals
 
 
 def test_index_empty(empty_client):
@@ -10,7 +10,7 @@ def test_index_empty(empty_client):
 
     response = empty_client.get('/')
     assert response.status_code == 200
-    assert 'Welcome!' in response.data
+    assert 'Welcome!' in response.data.decode('utf8')
 
 
 def test_index_with_content(one_book_twenty_cards_client):
@@ -18,4 +18,4 @@ def test_index_with_content(one_book_twenty_cards_client):
 
     response = one_book_twenty_cards_client.get('/')
     assert response.status_code == 200
-    assert 'Welcome!' in response.data
+    assert 'Welcome!' in response.data.decode('utf8')

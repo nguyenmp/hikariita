@@ -13,7 +13,7 @@ def test_two_books(two_books_ten_cards_each_client):
     assert response.status_code == 200
 
     # 1 header row + 2 book row
-    assert response.data.count('<tr>') == 3
+    assert response.data.decode('utf8').count('<tr>') == 3
 
 
 def test_one_book(one_book_twenty_cards_client):
@@ -24,7 +24,7 @@ def test_one_book(one_book_twenty_cards_client):
     assert response.status_code == 200
 
     # 1 header row + 1 book row
-    assert response.data.count('<tr>') == 2
+    assert response.data.decode('utf8').count('<tr>') == 2
 
 
 def test_redirects_without_slash(empty_client):
