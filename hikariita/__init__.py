@@ -31,7 +31,7 @@ def get_db():
     '''
     if 'db' not in g:
         print(str(os.environ))
-        db_path = os.environ.get('DATABASE', APP.config.get('DATABASE', None))
+        db_path = os.environ.get('DATABASE', APP.config.get('DATABASE', 'example.db'))
         print("DB STAT: " + str(os.stat(db_path)))
         print("Dtabase: " + str(db_path))
         g.db = sqlite3.connect(db_path)
