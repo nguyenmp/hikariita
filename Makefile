@@ -14,5 +14,5 @@ production: test virtualenv
 	source ./virtualenv/bin/activate && FLASK_APP=hikariita python3 -m flask run --host=0.0.0.0 --port=80 >> log.stdout 2>> log.stderr &
 
 test: virtualenv
-	source ./virtualenv/bin/activate && python3 -m pytest tests/ --junitxml=test_results.xml
+	source ./virtualenv/bin/activate && python3 -m pytest pytest_tests/ --junitxml=test_results.xml
 
