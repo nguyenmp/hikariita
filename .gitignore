@@ -1,3 +1,14 @@
+# This folder is generated when you run pretty much any command in `Makefile`, like `make test`
+# it contains the virtual environment for python binaries to isolate dependencies
+# This content is really versioned with requirements.txt and is configued with `make virtualenv`
 virtualenv/
+
+# This is the python bytecode that is generated and dropped by the interpreter to make things faster
+# They're basically binary and shouldn't be committed to git because of that and that it's based on the sources
 *.pyc
+
+# this is basically binary and hsould be stored in something that can handle binary (not git)
 *.db
+
+# This file is generated when someone runs `make test` and is needed for Jenkins to parse the unit test results
+test_results.xml
