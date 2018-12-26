@@ -16,3 +16,5 @@ production: test virtualenv
 test: virtualenv
 	source ./virtualenv/bin/activate && python3 -m pytest pytest_tests/ --junitxml=test_results.xml
 
+backup:
+	cp example.db ~/Dropbox/
