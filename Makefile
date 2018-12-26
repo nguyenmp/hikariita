@@ -18,3 +18,13 @@ test: virtualenv
 
 backup:
 	cp example.db ~/Dropbox/
+
+jenkins:
+	wget -q -O - https://pkg.jenkins.io/debian/jenkins-ci.org.key | apt-key add -
+	echo deb https://pkg.jenkins.io/debian-stable binary/ | tee /etc/apt/sources.list.d/jenkins.list
+	apt-get update
+	apt-get install default-jre # Needed for web server that jenkins runs on
+	apt-get install docker.io # Needed for docker container management
+	apt-get install jenkins
+	usermod -a -G docker jenkins # Need to add jenkins user to the docker group so it can talk to docker
+	systemctl restart jenkins # Need to restart jenkins after changing permissions above
