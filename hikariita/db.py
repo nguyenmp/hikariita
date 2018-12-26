@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS votes (
     id INTEGER PRIMARY KEY,
     vote INTEGER NOT NULL,
     card_id INTEGER NOT NULL,
-    FOREIGN KEY(card_id) REFERENCES cards(id)
+    FOREIGN KEY(card_id) REFERENCES cards(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS attributes (
@@ -30,14 +30,14 @@ CREATE TABLE IF NOT EXISTS attributes (
 CREATE TABLE IF NOT EXISTS attributes_cards_relation (
     card_id INTEGER,
     attribute_id INTEGER,
-    FOREIGN KEY(card_id) REFERENCES cards(id),
-    FOREIGN KEY(attribute_id) REFERENCES attributes(id)
+    FOREIGN KEY(card_id) REFERENCES cards(id) ON DELETE CASCADE,
+    FOREIGN KEY(attribute_id) REFERENCES attributes(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS working_set (
     id INTEGER PRIMARY KEY,
     card_id INTEGER,
-    FOREIGN KEY(card_id) REFERENCES cards(id)
+    FOREIGN KEY(card_id) REFERENCES cards(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS preferences (
@@ -555,12 +555,12 @@ def create_content(cursor, book_title, lesson_name, headers, cards):
 
 def main():
     ''' Imports data from a file '''
-    connection = sqlite3.connect('example.db')
+    connection = sqlite3.connect('../example.db')
     cursor = connection.cursor()
     init(cursor)
-    title = 'Genki 1'
-    lesson = 1
-    file_path = "/Users/livingon/Downloads/Genki I & II - Lesson 1.tsv"
+    title = 'Mandarin'
+    lesson = '8-5'
+    file_path = "/Users/livingon/Downloads/Mandarin - Level 8 Lesson 5-2.tsv"
     data = read_data(file_path)
     headers = data[0]
     cards = data[1:]
