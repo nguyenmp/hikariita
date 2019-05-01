@@ -17,6 +17,23 @@ $ pip install -r requirements.txt
 $ FLASK_DEBUG=True FLASK_ENV=dev FLASK_APP=hikariita flask run
 ```
 
+## How is it run on prod?
+
+```
+$ FLASK_APP=hikariita python3 -m flask run --host=0.0.0.0 --port=80 >> log.stdout 2>> log.stderr &
+```
+
+## How do I interact with the server?
+
+Use digital ocean to get a console, and curl append your SSH keys to the authorized host to get ssh and scp access.
+
+1. Upload your id_rsa.pub key to a github gist
+2. On the droplet in the Console through the web UI, $ curl raw_url >> ~/.ssh/authorized_keys
+3. Locally, $ scp root@159.65.102.173:~/hikariita/example.db .
+4. Locally, $ cp example.db ~/Dropbox/
+5. Manipulate some TSV on the server and run python db.py
+6. Locally, $ scp example.db root@159.65.102.173:~/hikariita/example.db
+
 # Why?
 
 This section documents why certain decisions were made.
