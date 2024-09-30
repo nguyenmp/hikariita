@@ -2,13 +2,13 @@ atomicwrites==1.2.1
 attrs==18.2.0
 beautifulsoup4==4.6.3
 bs4==0.0.1
-Click==7.0
+Click==8.1.7
 coverage==4.5.2
-Flask==1.0.2
+Flask==3.0.3
 funcsigs==1.0.2
-itsdangerous==1.1.0
-Jinja2==2.10
-MarkupSafe==1.1.0
+itsdangerous==2.2.0
+Jinja2==3.1.4
+MarkupSafe==2.1.5
 more-itertools==4.3.0
 pathlib2==2.3.3
 pluggy==0.8.0
@@ -16,4 +16,4 @@ py==1.7.0
 pytest==4.0.2
 scandir==1.9.0
 six==1.12.0
-Werkzeug==0.14.1
+Werkzeug==3.0.4
