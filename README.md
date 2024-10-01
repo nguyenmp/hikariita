@@ -8,38 +8,33 @@ This section documents how to do certain things with the source.
 
 ## How do I setup and run locally?
 
-You need python (2.7.10) and sqlite3 on your system.
+https://github.com/nguyenmp/vps-management has the latest info, but here's a local ref.
 
-```
-$ virtualenv virtualenv
-$ source virtualenv/bin/activate
-$ pip install -r requirements.txt
-$ FLASK_DEBUG=True FLASK_ENV=dev FLASK_APP=hikariita flask run
-```
+First get a copy of example.db (with pre-seeded data) from the VPS.  It's on the volume mount.  Put it in the project dir (directly under git):
 
-## How is it run on prod?
-
-```
-$ FLASK_APP=hikariita python3 -m flask run --host=0.0.0.0 --port=80 >> log.stdout 2>> log.stderr &
+```bash
+scp -i ~/.ssh/id_ed25519.digital_ocean root@147.182.236.144:/mnt/volume_sfo3_01/hikariita/example.db .
 ```
 
-In the future, I'm gonna try to get this running in Docker cause my VPS is getting unmanagable.
+Then docker-build it!
 
 ```
 docker build -t hikariita .
 docker run -it --rm -p 80:80 --name hikariita hikariita
+http://localhost:80
 ```
+
+## How is it run in prod?
+
+https://github.com/nguyenmp/vps-management on a VPS via ansible / docker-compose and probably with a web server in front.
 
 ## How do I interact with the server?
 
-Use digital ocean to get a console, and curl append your SSH keys to the authorized host to get ssh and scp access.
+See https://github.com/nguyenmp/vps-management
 
-1. Upload your id_rsa.pub key to a github gist
-2. On the droplet in the Console through the web UI, $ curl raw_url >> ~/.ssh/authorized_keys
-3. Locally, $ scp -i ~/.ssh/id_ed25519.digital_ocean root@159.65.102.173:~/hikariita/example.db .
-4. Locally, $ cp example.db ~/Dropbox/
-5. Manipulate some TSV on the server and run python db.py
-6. Locally, $ scp -i ~/.ssh/id_ed25519.digital_ocean example.db root@159.65.102.173:~/hikariita/example.db
+## How do I import new flashcards from my textbook?
+
+See the local setup section, and then run `python db.py` against a TSV export of [a Google Sheets data set](https://docs.google.com/spreadsheets/d/1Vf6AHJRo5yAe78RtfCvOAPISE4ZmDgXaqI3MjJn-68o/edit?gid=0#gid=0).
 
 # Why?
 
